@@ -22,7 +22,7 @@ export const updateContact = async (contactId, payload) => {
     const rawResult = await contactsCollection.findOneAndUpdate(
         { _id: contactId },
         { $set: payload },
-        { new: true }
+        { returnDocument: 'after' }
     );
     return rawResult;
 };
