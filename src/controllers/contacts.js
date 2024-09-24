@@ -1,4 +1,5 @@
 import createHttpError from 'http-errors';
+import { ObjectId } from 'mongodb';
 import { createContact, deleteContact, getAllContact, getContactById, updateContact } from '../services/contacts.js';
 
 
@@ -37,7 +38,7 @@ export const createContactController = async (req, res) => {
     });
 };
 
-export const patchContactController = async (req, res, next) => {
+export const patchContactController = async (req, res) => {
     const { contactId } = req.params;
     const result = await updateContact(contactId, req.body);
 
@@ -48,11 +49,12 @@ export const patchContactController = async (req, res, next) => {
     res.json({
         status: 200,
         message: "Successfully patched a contact!",
-        data: result.value,
+        data: result.contact,
     })
+
 };
 
-export const deleteContactController = async (req, res, next) => {
+export const deleteContactController = async (req, res) => {
     const { contactId } = req.params;
 
     const contact = await deleteContact(contactId);
