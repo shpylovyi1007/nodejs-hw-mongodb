@@ -1,4 +1,5 @@
 import createHttpError from 'http-errors';
+import { ObjectId } from 'mongodb';
 import { createContact, deleteContact, getAllContact, getContactById, updateContact } from '../services/contacts.js';
 
 
@@ -48,7 +49,7 @@ export const patchContactController = async (req, res) => {
     res.json({
         status: 200,
         message: "Successfully patched a contact!",
-        data: result,
+        data: result.contact,
     })
 
 };
