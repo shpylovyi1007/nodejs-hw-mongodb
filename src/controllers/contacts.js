@@ -1,10 +1,18 @@
 import createHttpError from 'http-errors';
 import { ObjectId } from 'mongodb';
 import { createContact, deleteContact, getAllContact, getContactById, updateContact } from '../services/contacts.js';
+import { parsePaginationParams } from '../utils/parsePaginationParams.js';
+import { contactsCollection } from '../db/models/contact.js';
+import { parseSortParams } from '../utils/parseSortParams.js';
+import { parseFilterParams } from '../utils/parseFilterParams.js';
 
 
 export const getContactsController = async (req, res) => {
-    const contacts = await getAllContact();
+    const { page, perPage } = parsePaginationParams(req.query);
+    const { sortBy, sortOrder } = parseSortParams(req.query);
+    const filter = parseFilterParams(req.query);
+
+    const contacts = await getAllContact({ page, perPage, sortOrder, sortBy, filter });
 
     res.status(200).json({
         status: 200,
