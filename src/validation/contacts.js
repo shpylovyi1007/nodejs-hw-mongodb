@@ -5,7 +5,8 @@ export const createContactsSchema = Joi.object({
     phoneNumber: Joi.string().min(3).max(20).required(),
     email: Joi.string().email(),
     isFavourite: Joi.boolean().falsy('N'),
-    contactType: Joi.string().valid('work', 'home', 'personal').required()
+    contactType: Joi.string().valid('work', 'home', 'personal').required(),
+    userId: Joi.string().required()
 });
 
 const validationResult = createContactsSchema.validate('contacts');

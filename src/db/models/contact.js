@@ -22,7 +22,8 @@ const contactsSchema = new Schema(
             enum: ['work', 'home', 'personal'],
             required: true,
             default: 'personal',
-        }
+        },
+        parentId: { type: Schema.Types.ObjectId, ref: 'users' },
     },
     {
         timestamps: true,
@@ -30,4 +31,4 @@ const contactsSchema = new Schema(
     },
 );
 
-export const contactsCollection = model('contacts', contactsSchema);
+export const ContactsCollection = model('contacts', contactsSchema);
