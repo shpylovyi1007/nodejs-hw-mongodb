@@ -6,12 +6,21 @@ import { SessionCollection } from '../db/models/session.js';
 
 
 export const registerUser = async (payload) => {
-    const ecryptedPassword = await bcrypt.hash(payload.password, 10);
 
-    return await UserCollection.create({
+    const existingUser = await UserCollection.findOne({ email: payload.email });
+    if (existingUser) {
+        throw createHttpError(409, 'Email in use');
+    }
+
+    const encryptedPassword = await bcrypt.hash(payload.password, 10);
+
+    const newUser = await UserCollection.create({
         ...payload,
-        password: ecryptedPassword,
+        password: encryptedPassword,
     });
+
+    const { password, ...userWithoutPassword } = newUser.toObject();
+    return userWithoutPassword;
 };
 
 export const loginUser = async (payload) => {
