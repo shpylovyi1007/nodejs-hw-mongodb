@@ -22,7 +22,7 @@ export const getAllContact = async ({ page, perPage, sortOrder = SORT_ORDER.ASC,
 };
 
 export const getContactById = async (contactId, userId) => {
-    const contact = await ContactsCollection.findById({ _id: contactId, userId });
+    const contact = await ContactsCollection.findOneAndUpdate({ _id: contactId, userId });
 
     return contact;
 };
