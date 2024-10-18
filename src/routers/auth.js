@@ -24,12 +24,12 @@ router.post('/logout', ctrlWrapper(logoutUserControler));
 router.post('/refresh', ctrlWrapper(refreshUserSessionController));
 
 router.post(
-    '/request-reset-email', validateBody(requestResetEmailSchema),
+    '/send-reset-email', validateBody(requestResetEmailSchema),
     ctrlWrapper(requestResetEmailController)
 );
 
 router.post(
-    '/reset-password',
+    '/reset-pwd',
     validateBody(resetPasswordSchema),
     ctrlWrapper(resetPasswordController),
 );

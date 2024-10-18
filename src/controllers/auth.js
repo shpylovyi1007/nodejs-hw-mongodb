@@ -15,9 +15,6 @@ export const registerUserControler = async (req, res) => {
 
 };
 
-
-
-
 export const loginUserControler = async (req, res) => {
     const session = await loginUser(req.body);
 
@@ -81,11 +78,23 @@ export const refreshUserSessionController = async (req, res) => {
 };
 
 export const requestResetEmailController = async (req, res) => {
-    await requestResetToken(req.body.email);
+    const { email } = req.body;
+    const user = await findUser({ email });
+    if (!user) throw createHttpError(404, 'User not found!');
+
+    try {
+        await requestResetToken(user);
+    } catch (error) {
+        throw createHttpError(
+            500,
+            'Failed to send the email, please try again later.',
+            error,
+        );
+    }
 
     res.json({
-        message: 'Reset password email was successfully sent!',
         status: 200,
+        message: 'Reset password email was successfully sent.',
         data: {},
     });
 };
