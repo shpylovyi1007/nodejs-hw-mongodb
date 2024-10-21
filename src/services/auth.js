@@ -7,7 +7,6 @@ import { SessionCollection } from '../db/models/session.js';
 import jwt from 'jsonwebtoken';
 import { env } from '../utils/env.js';
 import { sendEmail } from '../utils/sendMail.js';
-import { UserCollection } from "../db/models/user.js";
 
 export const findUser = async ({ email }) => {
     return await UserCollection.findOne({ email });
