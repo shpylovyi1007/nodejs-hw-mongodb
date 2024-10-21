@@ -5,13 +5,13 @@ import createHttpError from 'http-errors';
 import { FIFTEEN_MINUTES, ONE_DAY } from '../constants/index.js';
 import { SessionCollection } from '../db/models/session.js';
 import jwt from 'jsonwebtoken';
-import { SMTP } from '../constants/index.js';
 import { env } from '../utils/env.js';
 import { sendEmail } from '../utils/sendMail.js';
-import handlebars from 'handlebars';
-import path from 'node:path';
-import fs from 'node:fs/promises';
+import { UserCollection } from "../db/models/user.js";
 
+export const findUser = async ({ email }) => {
+    return await UserCollection.findOne({ email });
+};
 
 export const registerUser = async (payload) => {
 
@@ -122,6 +122,8 @@ export const requestResetToken = async (user) => {
 
     return sendEmail(emailData);
 };
+
+
 
 
 export const resetPassword = async (payload) => {

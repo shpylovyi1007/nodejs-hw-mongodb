@@ -1,4 +1,4 @@
-import { loginUser, logoutUser, registerUser, requestResetToken } from "../services/auth.js"
+import { loginUser, logoutUser, registerUser, requestResetToken, findUser } from "../services/auth.js"
 import { refreshUsersSession } from '../services/auth.js';
 import { ONE_DAY } from "../constants/index.js";
 import { resetPassword } from '../services/auth.js';
