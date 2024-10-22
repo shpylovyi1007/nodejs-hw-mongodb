@@ -2,6 +2,7 @@ import { loginUser, logoutUser, registerUser, requestResetToken, findUser } from
 import { refreshUsersSession } from '../services/auth.js';
 import { ONE_DAY } from "../constants/index.js";
 import { resetPassword } from '../services/auth.js';
+import createHttpError from "http-errors";
 
 
 export const registerUserControler = async (req, res) => {
@@ -80,7 +81,9 @@ export const refreshUserSessionController = async (req, res) => {
 export const requestResetEmailController = async (req, res) => {
     const { email } = req.body;
     const user = await findUser({ email });
-    if (!user) throw createHttpError(404, 'User not found!');
+    if (!user) {
+        throw createHttpError(404, 'User not found!');
+    };
 
     try {
         await requestResetToken(user);
