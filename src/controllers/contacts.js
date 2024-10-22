@@ -1,38 +1,49 @@
 import createHttpError from 'http-errors';
-import { createContact, deleteContact, getAllContact, getContactById, updateContact } from '../services/contacts.js';
+import {
+    createContact,
+    delateContact,
+    getAllContacts,
+    getContactById,
+    updateContact,
+} from '../services/contacts.js';
 import { parsePaginationParams } from '../utils/parsePaginationParams.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
 import { parseFilterParams } from '../utils/parseFilterParams.js';
 import { saveFileToUploadDir } from '../utils/saveFileToUploadDir.js';
-import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
 import { env } from '../utils/env.js';
+import { saveFileToCloudinary } from '../utils/saveFileToCloudinary.js';
 
-
-export const getContactsController = async (req, res) => {
+export const getAllContactsController = async (req, res) => {
     const { page, perPage } = parsePaginationParams(req.query);
     const { sortBy, sortOrder } = parseSortParams(req.query);
     const filter = parseFilterParams(req.query);
-    const userId = req.user._id;
 
-    const contacts = await getAllContact({ page, perPage, sortOrder, sortBy, filter, userId });
+    const contacts = await getAllContacts({
+        page,
+        perPage,
+        sortBy,
+        sortOrder,
+        filter,
+        userId: req.userId,
+    });
+
+    if (!contacts) throw createHttpError(404, 'Contacts not found');
 
     res.status(200).json({
         status: 200,
-        message: "Successfully found contacts!",
+        message: 'Successfully found contacts!',
         data: contacts,
     });
 };
 
-export const getContactByIdController = async (req, res, next) => {
+export const getContactByIdController = async (req, res) => {
     const { contactId } = req.params;
-    const userId = req.user._id;
-    const contact = await getContactById(contactId, userId);
+    const { userId } = req;
+    const contact = await getContactById(userId, contactId);
 
-    if (!contact) {
-        throw createHttpError(404, 'Contact not found');
-    }
+    if (!contact) throw createHttpError(404, 'Contact not found');
 
-    res.json({
+    res.status(200).json({
         status: 200,
         message: `Successfully found contact with id ${contactId}!`,
         data: contact,
@@ -40,56 +51,98 @@ export const getContactByIdController = async (req, res, next) => {
 };
 
 export const createContactController = async (req, res) => {
-    const contactData = { ...req.body };
-    const contact = await createContact(contactData);
+    const userId = req.userId;
+    const photo = req.file;
+
+    let photoUrl;
+
+    if (env('ENABLE_CLOUDINARY') === 'true' && photo) {
+        photoUrl = await saveFileToCloudinary(photo);
+    } else if (photo) {
+        photoUrl = await saveFileToUploadDir(photo);
+    }
+
+    const contact = await createContact({ ...req.body, userId, photo: photoUrl });
 
     res.status(201).json({
         status: 201,
-        message: "Successfully created a contact!",
+        message: 'Successfully created a contact!',
         data: contact,
     });
 };
 
 export const patchContactController = async (req, res) => {
     const { contactId } = req.params;
-    const userId = req.user._id;
+    const userId = req.userId;
     const photo = req.file;
 
     let photoUrl;
 
-    if (photo) {
-        if (env('ENABLE_CLOUDINARY') === 'true') {
-            photoUrl = await saveFileToCloudinary(photo);
-        } else {
-            photoUrl = await saveFileToUploadDir(photo);
-        }
+    if (env('ENABLE_CLOUDINARY') === 'true' && photo) {
+        photoUrl = await saveFileToCloudinary(photo);
+    } else if (photo) {
+        photoUrl = await saveFileToUploadDir(photo);
     }
 
-    const result = await updateContact(contactId, userId, {
-        ...req.body,
-        photo: photoUrl,
-    });
+    const result = await updateContact(
+        contactId,
+        { ...req.body, photo: photoUrl },
+        {},
+        userId,
+    );
 
-    if (!result) {
-        throw createHttpError(404, 'Contact not found');
-    }
+    if (!result) throw createHttpError(404, 'Contact not found');
 
-    res.json({
+    res.status(200).json({
         status: 200,
-        message: "Successfully patched a contact!",
+        message: 'Successfully patched a contact!',
         data: result.contact,
-    })
-
+    });
 };
 
-export const deleteContactController = async (req, res) => {
+export const upsertContactController = async (req, res, next) => {
     const { contactId } = req.params;
-    const userId = req.user._id;
-    const contact = await deleteContact(contactId, userId);
+    const userId = req.userId;
+    let photo = req.file;
 
-    if (!contact) {
-        throw createHttpError(404, 'Contact not found');
+    let photoUrl;
+
+    if (env('ENABLE_CLOUDINARY') === 'true' && photo) {
+        photoUrl = await saveFileToCloudinary(photo);
+    } else if (photo) {
+        photoUrl = await saveFileToUploadDir(photo);
     }
 
-    res.status(204).send();
+    const result = await updateContact(
+        contactId,
+        { ...req.body, photo: photoUrl },
+        {
+            upsert: true,
+        },
+        userId,
+    );
+
+    if (!result) {
+        next(createHttpError(404, 'Contact not found'));
+        return;
+    }
+
+    const status = result.isNew ? 201 : 200;
+
+    res.status(status).json({
+        status,
+        message: 'Successfully upserted a contact!',
+        data: result.contact,
+    });
+};
+
+export const delateContactController = async (req, res) => {
+    const { contactId } = req.params;
+    const userId = req.userId;
+
+    const contact = await delateContact(contactId, userId);
+
+    if (!contact) throw createHttpError(404, 'Contact not found');
+
+    res.sendStatus(204);
 };
